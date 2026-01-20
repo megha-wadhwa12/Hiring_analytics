@@ -7,32 +7,32 @@ OFFER_STAGE = 4
 REJECTED_STAGE = 6
 
 def schedule_interview(candidate_id, interviewer, score, feedback):
-    current_stage = get_current_stage(candidate_id)
-
-    if current_stage != INTERVIEW_STAGE:
-        print("❌ Candidate is not in Interview stage")
-        return
-
     conn = get_connection()
     cursor = conn.cursor()
 
-    interview_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+    SELECT stage_id FROM candidate_stage_history
+    WHERE candidate_id = ?
+    ORDER BY id DESC
+    LIMIT 1
+    """, (candidate_id,))
+
+    row = cursor.fetchone()
+
+    if not row or row[0] != 3:
+        print("❌ Candidate is not in Interview stage")
+        conn.close()
+        return
 
     cursor.execute("""
-    INSERT INTO interviews (candidate_id, interviewer, score, feedback, interview_date)
-    VALUES (?, ?, ?, ?, ?)
-    """, (candidate_id, interviewer, score, feedback, interview_date))
+    INSERT INTO interviews (candidate_id, interviewer, score, feedback)
+    VALUES (?, ?, ?, ?)
+    """, (candidate_id, interviewer, score, feedback))
 
     conn.commit()
     conn.close()
 
     print("✅ Interview recorded successfully!")
-
-    # Decision logic (simple & realistic)
-    if score >= 7:
-        move_candidate(candidate_id, OFFER_STAGE)
-    else:
-        reject_candidate(candidate_id, "Low interview score")
 
 def reject_candidate(candidate_id, reason):
     conn = get_connection()

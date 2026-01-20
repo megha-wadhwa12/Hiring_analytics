@@ -26,26 +26,38 @@ def get_current_stage(candidate_id):
 
     return row[0] if row else None
 
-def move_candidate(candidate_id, next_stage_id):
-    current_stage = get_current_stage(candidate_id)
-
-    if current_stage is None:
-        print("❌ Candidate not found")
-        return
-
-    if current_stage not in STAGE_FLOW or next_stage_id not in STAGE_FLOW[current_stage]:
-        print("❌ Invalid stage transition")
-        return
-
+def move_candidate(candidate_id, new_stage_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+    SELECT stage_id FROM candidate_stage_history
+    WHERE candidate_id = ?
+    ORDER BY id DESC
+    LIMIT 1
+    """, (candidate_id,))
+
+    row = cursor.fetchone()
+
+    if not row:
+        print("❌ Candidate not found")
+        conn.close()
+        return
+
+    current_stage = row[0]
+
+    # STRICT STATE MACHINE
+    if new_stage_id == 6:
+        pass
+    elif new_stage_id != current_stage + 1:
+        print("❌ Invalid stage transition")
+        conn.close()
+        return
 
     cursor.execute("""
     INSERT INTO candidate_stage_history (candidate_id, stage_id, updated_at)
-    VALUES (?, ?, ?)
-    """, (candidate_id, next_stage_id, updated_at))
+    VALUES (?, ?, datetime('now'))
+    """, (candidate_id, new_stage_id))
 
     conn.commit()
     conn.close()

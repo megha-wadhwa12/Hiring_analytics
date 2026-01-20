@@ -18,7 +18,7 @@ def seed_candidates():
     schedule_interview(
         c1,
         interviewer="Ankit",
-        rating=8,
+        score=8,
         feedback="Strong backend fundamentals"
     )
     move_candidate(c1, 4)   # Interview → Offer
@@ -39,7 +39,7 @@ def seed_candidates():
     schedule_interview(
         c2,
         interviewer="Neha",
-        rating=5,
+        score=5,
         feedback="Weak JavaScript fundamentals"
     )
     move_candidate(c2, 6)   # Interview → Rejected
@@ -72,7 +72,7 @@ def seed_candidates():
     schedule_interview(
         c4,
         interviewer="Rohit",
-        rating=9,
+        score=9,
         feedback="Excellent analytical thinking"
     )
     move_candidate(c4, 4)   # Interview → Offer
